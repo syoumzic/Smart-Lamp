@@ -131,6 +131,11 @@ void setup() {
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.mode(WIFI_AP);                                         //установка в режим точки доступа
   WiFi.softAP("Lamp", "123456789");                           //установка имени и пароля сети
+
+  strip.begin();
+  strip.fill(color, 0, STRIP_LENGTH);
+  strip.show();
+  
   server.begin();                                             //запуск
 }
 
@@ -234,6 +239,7 @@ void exact(int command) {
     break;
     
     case SETTINGS: {
+      client.write(REALIZED);
       client.write(alarmClock.hour);                    //отправка часы будильника
       client.write(alarmClock.minute);                  //отправка минуты будильника 
       client.write(alarmClock.duration / MINUTE);       //отправка время пробуждения 
