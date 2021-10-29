@@ -1,6 +1,5 @@
 #include <ESP8266WiFi.h>
 #include <Adafruit_NeoPixel.h>
-#include <Streaming.h>
 
 #define SETTINGS 1
 #define ALARM_CLOCK_ENABLED 2
