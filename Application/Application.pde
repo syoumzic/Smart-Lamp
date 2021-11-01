@@ -1,7 +1,7 @@
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-String lampIp = "192.168.1.117";
+String lampIp = "   ";  //ip аддрес лампы (см. последовательный порт)
 float SWIPE_LENGTH = .3;  // * width
 
 final byte SETTINGS = 1;
