@@ -1,6 +1,13 @@
 #include <ESP8266WiFi.h>
 #include <Adafruit_NeoPixel.h>
 
+#define ssid "name"      //вставить сюда имя роутера
+#define password "pass"  //вставить сюда пароль роутера
+
+#define STRIP_LENGTH 40       //количество пикселей на лента
+#define PIN D7                //шина передачи данных между лентой
+
+/* данные констваты не менять! */
 #define SETTINGS 1
 #define ALARM_CLOCK_ENABLED 2
 #define ALARM_CLOCK_DISABLED 3
@@ -22,9 +29,7 @@
 #define SECOND 1000
 
 #define WHITE 65793
-
-#define STRIP_LENGTH 40
-#define PIN D7
+/*************************/
 
 Adafruit_NeoPixel strip(STRIP_LENGTH, PIN, NEO_GRB + NEO_KHZ800); //количество светидиодов, пин к которому припаяна лампа, цветопередача и частота обновления ленты
 WiFiServer server(10);
@@ -36,7 +41,7 @@ int readTime();
 
 struct Timer{
   long long mark;
-  bool enabled;
+  bool enabled = false;
 
   bool active(){
     return enabled && mark-millis() <= 0;
@@ -66,7 +71,7 @@ struct Timer{
 
 struct Metronom {
   int duration = 1500;
-  bool enabled;
+  bool enabled = false;
 
   void setDuration(){
     byte c = client.read();
@@ -123,33 +128,27 @@ struct AlarmClock {
 
 } alarmClock;
 
-uint32_t color = 0x7f7f7f;
+uint32_t color = 0x808080;  //начальный цвет
 
 void setup() {
-  IPAddress apIP(192, 168, 4, 1);                             //установка ip адреса лампы
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.mode(WIFI_AP);                                         //установка в режим точки доступа
-  WiFi.softAP("Lamp", "123456789");                           //установка имени и пароля сети
-
+  Serial.begin(115200);
+  
   strip.begin();
   strip.fill(color, 0, STRIP_LENGTH);
-  strip.show();
+  strip.show();   
   
-  server.begin();                                             //запуск
-}
-
-void update() {
-  if (!client.connected()) {                                  //пока нет подключения
-    client = server.available();                              //подключаем
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  
+  Serial.print("\nПодключаюсь к роутеру");
+  while (WiFi.status() != WL_CONNECTED){
+    Serial.print(".");
+    delay(125);
   }
-  else if (client.available() > 0) {                          //если есть данные
-    
-    exact(client.read());                                     //выполняем полученную команду
-    client.write(REALIZED);                                   //отправляем ответ приложению
-
-  }
+  
+  Serial.println("\nГотово!\nlampIp = \"" + WiFi.localIP().toString() + "\"");
+  server.begin();
 }
-
 
 void exact(int command) {
   switch (command) {  //проверка команды
@@ -238,7 +237,6 @@ void exact(int command) {
     break;
     
     case SETTINGS: {
-      client.write(REALIZED);
       client.write(alarmClock.hour);                    //отправка часы будильника
       client.write(alarmClock.minute);                  //отправка минуты будильника 
       client.write(alarmClock.duration / MINUTE);       //отправка время пробуждения 
@@ -273,7 +271,13 @@ int readTime(){
   return (int8_t)client.read() * HOUR + (int8_t)client.read() * MINUTE + (int8_t)client.read() * SECOND;
 }
 void loop() {
-  update();
+  if (!client.connected()) {                                  //пока нет подключения
+    client = server.available();                              //подключаем
+  }
+  else if (client.available() > 0) {                          //если есть данные
+    client.write(REALIZED);
+    exact(client.read());                                     //выполняем полученную команду
+   }
   
   if (alarmClock.active())
     alarmClock.show();
