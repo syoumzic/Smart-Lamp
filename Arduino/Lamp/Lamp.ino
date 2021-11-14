@@ -8,6 +8,7 @@
 #define PIN D7                //шина передачи данных между лентой
 
 /* данные констваты не менять! */
+
 #define SETTINGS 1
 #define ALARM_CLOCK_ENABLED 2
 #define ALARM_CLOCK_DISABLED 3
