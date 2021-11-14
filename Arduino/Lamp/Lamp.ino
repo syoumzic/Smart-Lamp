@@ -7,7 +7,7 @@
 #define STRIP_LENGTH 40       //количество пикселей на лента
 #define PIN D7                //шина передачи данных между лентой
 
-/* данные констваты не менять! */
+/* данные константы не менять! */
 
 #define SETTINGS 1
 #define ALARM_CLOCK_ENABLED 2
